@@ -1,0 +1,82 @@
+version: "3"
+
+services:
+  nginx:
+    container_name: nginx
+    build:
+      context: ./requirements/nginx/
+      dockerfile: Dockerfile
+    networks:
+      - inception
+    ports:
+      - 443:443
+    volumes:
+      - wp-wordpress:/var/lib/nginx/wordpress
+    depends_on:
+      - wordpress
+    restart: on-failure
+  wordpress:
+    container_name: wordpress
+    build:
+      context: ./requirements/wordpress/
+      dockerfile: Dockerfile
+    networks:
+      - inception
+    volumes:
+      - wp-wordpress:/var/lib/nginx/wordpress
+    environment:
+      WORDPRESS_URL: ${WORDPRESS_URL}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_ADMIN_NAME: ${WORDPRESS_ADMIN_NAME}
+      WORDPRESS_ADMIN_PWD: ${WORDPRESS_ADMIN_PWD}
+      WORDPRESS_ADMIN_EMAIL: ${WORDPRESS_ADMIN_EMAIL}
+      WORDPRESS_USER_NAME: ${WORDPRESS_USER_NAME}
+      WORDPRESS_USER_PWD: ${WORDPRESS_USER_PWD}
+      WORDPRESS_USER_EMAIL: ${WORDPRESS_USER_EMAIL}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: on-failure
+  mariadb:
+    container_name: mariadb
+    build:
+      context: ./requirements/mariadb/
+      dockerfile: Dockerfile
+    networks:
+      - inception
+    volumes:
+      - wp-database:/var/lib/mysql
+    environment:
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    healthcheck:
+      test: ["CMD", "mariadb", "-u$MYSQL_USER", "-p$MYSQL_PASSWORD", "$MYSQL_DATABASE"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+    restart: on-failure
+
+networks:
+  inception:
+    name: inception
+    driver: bridge
+
+volumes:
+  wp-database:
+    name: wp-database
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ~/42cursus/in-test/dbv
+  wp-wordpress:
+    name : wp-wordpress
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ~/42cursus/in-test/wpv
