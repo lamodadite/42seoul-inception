@@ -72,11 +72,11 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ~/42cursus/in-test/dbv
+      device: /home/jongmlee/data/dbv
   wp-wordpress:
     name : wp-wordpress
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ~/42cursus/in-test/wpv
+      device: /home/jongmlee/data/wpv

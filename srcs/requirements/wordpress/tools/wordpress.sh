@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#set -e
+set -e
 
 cd /var/lib/nginx/wordpress
 
